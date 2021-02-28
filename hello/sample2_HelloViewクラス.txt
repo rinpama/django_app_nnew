@@ -1,0 +1,141 @@
+from typing import overload
+from django.shortcuts import render
+from django.http import HttpResponse
+from django.views.generic import TemplateView
+from .forms import HelloForm
+
+class HelloView(TemplateView):
+    
+    def __init__(self):
+        self.params={
+            'title':'Hello',
+            'message':'your data',
+            'form':HelloForm(),
+            'result':None,
+            'result2':None,
+            'result3':None,
+
+        }
+    def get(self,request):
+        return render(request,'hello/index.html',self.params) 
+
+    def post(self,request):
+        if ('check' in request.POST):
+            self.params['result']='お前は男だ！'
+        else:
+            self.params['result']='あなたは女性ですね'
+
+        chk=request.POST['check2']
+        if (chk=='true'):
+            chk_ans='yes!!'
+        elif (chk=='false'):
+            chk_ans='Why you Not select yes?'
+        else:
+            chk_ans='yoy are loser'
+        self.params['result2']='you selected:"' + chk_ans + '"'
+
+        choi=request.POST['Choice']
+        if (choi=='one'):
+            choi= 'ONE'
+        elif (choi=='two'):
+            choi='TWO'
+        else:
+            choi='TREE'
+        self.params['result3']='your choice is #'+ choi + '#'
+
+        mul=request.POST.getlist('mulslct')
+        result4 ="<ol class='list-group'><b>Multi Selected:</b>"
+        for item in mul:
+            result4 += '<li class="list-group-item">' +item +'</li>'
+        result4 += '</ol>'
+        self.params['result4']=result4
+
+        
+        msg= 'あなたは<b>'+ request.POST['name']+ '('+ request.POST['age']+ ')<b>さんです。<br>メールアドレスは<b>'+ request.POST['mail']+ '<b>ですね'+'<br>体温は'+ request.POST['body_temperature']+ '<br>日付は'+ request.POST['date']+ '時間は'+ request.POST['time']+ '<br>でも、今日のホントの日付と時間は'+ request.POST['date_time']
+        self.params['message']= msg
+        
+        self.params['form']= HelloForm(request.POST)
+
+        return render(request,'hello/index.html',self.params)
+        
+    
+    
+＊＊＊＊＊＊＊＊＊＊＊＊上記分のHTML＊＊＊＊＊＊
+{% load static %}
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title> {{title}} </title>
+    <!-- <link rel="stylesheet" type='text/css' href=" {% static 'hello/css/style.css' %} "/> -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" crossorigin='anonymous'>
+</head>
+<body class='container'>
+    <h1 class='display-4 text-primary mb-4'>{{title}} </h1>
+    
+    <p class='h5 mt-4 '>{{ message|safe }}</p>
+    <p> {{ result|safe }} </p>
+    <p> {{ result2|safe }} </p>
+    <p> {{ result3|safe }} </p>
+    <p> {{ result4|safe }} </p>
+    <p>'******************************************************************************'</p>
+    <form action="{% url 'index' %}" method='post'>
+        {% csrf_token %}
+        <table>
+            {{ form.as_p }}
+            <input type="submit" class='btn btn-primary my-2' value='click'>
+        </table>        
+    </form>
+    
+</body>
+</html>
+
+
+*************上記分のurls.py
+
+from django.conf.urls import url
+from .views import HelloView
+
+urlpatterns=[
+    url(r'',HelloView.as_view(),name='index'),
+    ]
+
+
+********************上記分のforms.py**********
+from django import forms
+
+class HelloForm(forms.Form):
+    name= forms.CharField(label='name',\
+        widget=forms.TextInput(attrs={'class':'form-control'}))
+    mail= forms.CharField(label='mail',\
+        widget=forms.TextInput(attrs={'class':'form-control'}))
+    age=forms.IntegerField(label='age',\
+        widget=forms.NumberInput(attrs={'class':'form-control'}))
+    body_temperature=forms.FloatField(label='body_temperature',\
+        widget=forms.NumberInput(attrs={'class':'form-control'}))
+    homepage_url=forms.CharField(label='homepage_url',\
+        widget=forms.TextInput(attrs={'class':'form-control'}))
+    date=forms.DateField(label='date',\
+        widget=forms.DateInput(attrs={'class':'form-control'}))
+    time=forms.TimeField(label='time',\
+        widget=forms.TimeInput(attrs={'class':'form=control'}))
+    date_time=forms.DateTimeField(label='date_time',\
+        widget=forms.DateTimeInput(attrs={'class':'form-control'}))
+    check=forms.BooleanField(label='男性はチェックを',required=False)
+    check2=forms.NullBooleanField(label='NullBool')
+    data=[
+        ('one','ch 1 '),
+        ('two','ch 2 '),
+        ('three','ch 3 ')
+    ]
+    Choice=forms.ChoiceField(label='SingleChice', choices=data,widget=forms.Select(attrs={'size':3}))
+    data2=[
+        ('one','mul 1'),
+        ('two','mul 2'),
+        ('three','mul 3'),
+        ('four','mul 4'),
+        ('five','mul 5'),
+    ]
+    mulslct=forms.MultipleChoiceField(label='MultiSelc',\
+        choices=data2,widget=forms.SelectMultiple(attrs={'size':5}))
+    

@@ -1,0 +1,10 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\hello",
+    "\\hello\\templates",
+    "\\hello\\templates\\hello"
+  ],
+  "SelectedNode": "\\hello\\templates\\hello\\create.html",
+  "PreviewInSolutionExplorer": false
+}
