@@ -1,0 +1,1 @@
+web: gunicorn django_app_new.wsgi
